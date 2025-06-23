@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Flash Bot Account</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 90vh; background-color: #f9fafb; margin: 0; padding: 20px; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px १५px rgba(0,0,0,0.1); text-align: center; max-width: 450px; }
+        h2 { color: #333; }
+        .message { margin-top: 20px; padding: 15px; border-radius: 6px; font-size: 16px; line-height: 1.5; }
+        .message.success { background-color: #d4edda; color: #155724; }
+        .message.error { background-color: #f8d7da; color: #721c24; }
+        .message.loading { background-color: #e9ecef; color: #495057; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Account Verification</h2>
+        <div id="messageArea" class="message loading">กำลังยืนยันบัญชีของคุณ...</div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwWIcRczMCQGCIjoZZMXcg25AYGqozTi8tpJOIuadW5XwY8ou49G2302z9EnI593wk/exec';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const messageArea = document.getElementById('messageArea');
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const token = urlParams.get('token');
+
+            if (!email || !token) {
+                messageArea.textContent = 'ข้อมูลสำหรับยืนยันไม่ถูกต้อง (email หรือ token หายไปจาก URL)';
+                messageArea.className = 'message error';
+                return;
+            }
+
+            try {
+                const payload = { action: 'verifyEmail', email, token };
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    messageArea.textContent = result.data.message || 'ยืนยันบัญชีสำเร็จแล้ว! คุณสามารถปิดหน้านี้ และกลับไปเข้าสู่ระบบได้เลย';
+                    messageArea.className = 'message success';
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                messageArea.textContent = `การยืนยันล้มเหลว: ${error.message}`;
+                messageArea.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>
